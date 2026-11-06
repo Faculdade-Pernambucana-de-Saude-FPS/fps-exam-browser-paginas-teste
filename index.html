@@ -1,0 +1,144 @@
+<!doctype html>
+<!--
+  Página de teste do navegador de prova da FPS (fps-exam-browser).
+  Usada nas listas manuais da spec 005 (navegador — motor, tela cheia e filtro de domínios):
+  doc/specs/005-navegador-motor-tela-cheia-e-filtro-de-dominios/ no repositório fps-exam-browser.
+  Cada bloco tem um título que a lista manual cita. Abra com o perfil de desenvolvimento
+  (prova-dev), que permite este host e httpbin.org e nada mais.
+  Não tem dado de aluno nem segredo: só links, um PDF de exemplo e quadros embutidos.
+-->
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Página de teste — navegador de prova FPS</title>
+<style>
+  body { font-family: sans-serif; margin: 1.5rem; max-width: 60rem; line-height: 1.4; }
+  section { border: 1px solid #bbb; border-radius: 6px; padding: .5rem 1rem; margin: 1rem 0; }
+  h2 { font-size: 1.05rem; margin: .4rem 0; }
+  .esperado { color: #555; font-size: .9rem; }
+  iframe, embed { width: 100%; height: 8rem; border: 1px dashed #888; }
+  button { margin: .2rem .4rem .2rem 0; }
+</style>
+</head>
+<body>
+<h1>Página de teste do navegador de prova</h1>
+<p>Spec 005 do <code>fps-exam-browser</code>. Cada bloco diz o que deve acontecer.</p>
+
+<section id="b01">
+  <h2>Bloco 01 — link para site fora do perfil</h2>
+  <a href="https://www.google.com/">Abrir https://www.google.com/</a>
+  <p class="esperado">Esperado: barrado; aparece "Site não permitido nesta prova" (CA-001).</p>
+</section>
+
+<section id="b02">
+  <h2>Bloco 02 — redirecionamento para fora do perfil</h2>
+  <a href="https://httpbin.org/redirect-to?url=https://www.google.com/">httpbin.org redireciona para google.com</a>
+  <p class="esperado">Esperado: o httpbin abre, o redirecionamento é barrado e a página local mostra google.com (CA-008).</p>
+</section>
+
+<section id="b03">
+  <h2>Bloco 03 — link para página permitida</h2>
+  <a href="permitido.html">Abrir permitido.html</a>
+  <p class="esperado">Esperado: abre na mesma janela.</p>
+</section>
+
+<section id="b04">
+  <h2>Bloco 04 — links que pedem nova janela</h2>
+  <a href="permitido.html" target="_blank">target=_blank para permitido.html</a> ·
+  <a href="permitido.html" target="_blank" rel="noopener">target=_blank rel=noopener para permitido.html</a> ·
+  <a href="https://www.google.com/" target="_blank">target=_blank para google.com</a> ·
+  <a href="https://www.google.com/" target="_blank" rel="noopener">target=_blank rel=noopener para google.com</a>
+  <p class="esperado">Esperado: nenhuma janela nova, nem atrás. Permitido abre na mesma janela; fora do perfil é barrado (CA-005, RF-009).</p>
+</section>
+
+<section id="b05">
+  <h2>Bloco 05 — window.open pela página</h2>
+  <button onclick="abrir('permitido.html')">window.open('permitido.html')</button>
+  <button onclick="abrir('https://www.google.com/')">window.open('https://www.google.com/')</button>
+  <button onclick="abrirVazio()">window.open() vazio</button>
+  <p class="esperado">Esperado: nenhuma janela nova (CA-005).</p>
+</section>
+
+<section id="b06">
+  <h2>Bloco 06 — download de PDF</h2>
+  <a href="prova.pdf" download>Baixar prova.pdf</a> ·
+  <a href="prova.pdf">Abrir prova.pdf (sem o atributo download)</a>
+  <p class="esperado">Esperado: nada é baixado e nenhuma caixa de diálogo abre (CA-006). Com o perfil que libera downloads, baixa (CA-009).</p>
+</section>
+
+<section id="b07">
+  <h2>Bloco 07 — anexo enviado pelo servidor</h2>
+  <a href="https://httpbin.org/response-headers?Content-Type=application/pdf&amp;Content-Disposition=attachment;filename=prova.pdf">httpbin.org devolve como anexo</a>
+  <p class="esperado">Esperado: nada é baixado (CA-006). O GitHub Pages não deixa escolher cabeçalho, por isso o httpbin.</p>
+</section>
+
+<section id="b08">
+  <h2>Bloco 08 — download gerado por script (blob:)</h2>
+  <button onclick="baixarBlob()">Gerar e baixar gerado.txt</button>
+  <p class="esperado">Esperado: nada é baixado.</p>
+</section>
+
+<section id="b09">
+  <h2>Bloco 09 — quadro embutido de site fora do perfil</h2>
+  <iframe src="https://www.example.com/" title="quadro para example.com"></iframe>
+  <p class="esperado">Esperado: o quadro é barrado e a decisão aparece no registro; o resto da página carrega (CA-014).</p>
+</section>
+
+<section id="b10">
+  <h2>Bloco 10 — quadros sem endereço (about:blank e srcdoc)</h2>
+  <iframe title="quadro sem src"></iframe>
+  <iframe srcdoc="&lt;p&gt;conteúdo do quadro srcdoc&lt;/p&gt;" title="quadro srcdoc"></iframe>
+  <p class="esperado">Esperado: os dois carregam (folga só para about:blank e about:srcdoc dentro de quadro).</p>
+</section>
+
+<section id="b11">
+  <h2>Bloco 11 — quadro dentro de quadro</h2>
+  <iframe srcdoc="&lt;p&gt;quadro de fora&lt;/p&gt;&lt;iframe src=&quot;https://www.example.com/&quot; style=&quot;width:100%;height:4rem&quot;&gt;&lt;/iframe&gt;" title="quadro aninhado"></iframe>
+  <p class="esperado">Esperado: o de fora carrega; o de dentro (example.com) é barrado.</p>
+</section>
+
+<section id="b12">
+  <h2>Bloco 12 — recursos da própria página e de outro domínio</h2>
+  <img src="imagem.svg" alt="imagem do mesmo domínio">
+  <img src="https://www.google.com/favicon.ico" alt="imagem de outro domínio" width="32" height="32">
+  <p>Script da página: <strong id="script-status">script NÃO carregou</strong></p>
+  <p class="esperado">Esperado: a imagem verde, o ícone do Google e "script carregou" aparecem: recursos passam, só a navegação é filtrada (CA-014, RF-010).</p>
+</section>
+
+<section id="b13">
+  <h2>Bloco 13 — PDF externo embutido</h2>
+  <embed src="https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf" type="application/pdf">
+  <p class="esperado">Esperado: barrado (domínio fora do perfil), ou registrado no relato se o motor tratar como recurso.</p>
+</section>
+
+<section id="b14">
+  <h2>Bloco 14 — imprimir pela página</h2>
+  <button onclick="window.print()">window.print()</button>
+  <p class="esperado">Esperado: nenhuma caixa de impressão.</p>
+</section>
+
+<section id="b15">
+  <h2>Bloco 15 — escolher arquivo</h2>
+  <input type="file">
+  <p class="esperado">Só registrar o que acontece (issue 61 — diálogos do sistema abertos pela página).</p>
+</section>
+
+<section id="b16">
+  <h2>Bloco 16 — esquemas que não são https</h2>
+  <a href="data:text/html,%3Ch1%3Edata%20URL%3C%2Fh1%3E">data:text/html</a> ·
+  <a href="view-source:https://www.google.com/">view-source:</a> ·
+  <a href="edge://settings">edge://settings</a> ·
+  <a href="about:blank">about:blank</a>
+  <p class="esperado">Esperado: todos barrados na página principal.</p>
+</section>
+
+<section id="b17">
+  <h2>Bloco 17 — about:blank com conteúdo escrito por script</h2>
+  <button onclick="aboutBlankComConteudo()">Ir para about:blank e escrever nele</button>
+  <p class="esperado">Esperado: barrado; o texto "conteúdo escrito em about:blank" não aparece.</p>
+</section>
+
+<script src="pagina.js"></script>
+</body>
+</html>
